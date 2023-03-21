@@ -38,7 +38,7 @@ async function startApplication() {
     }
   }
   console.log("Packages loaded!");
-  self.postMessage({type: 'status', msg: 'Executing code'})
+  self.postMessage({type: 'status', msg: 'Loading...'})
   const code = `
   
 import asyncio
@@ -50,7 +50,7 @@ init_doc()
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import numpy as np
@@ -65,8 +65,8 @@ import hvplot.pandas
 # In[ ]:
 
 
-def four_param_logistic(X, b, c, d, e):
-    return c + (d - c) / (1 + np.exp(b*(X-e)))
+def four_param_logistic(X, a, b, c, d):
+    return c + (d - c) / (1 + np.exp(b*(X-a)))
 
 
 # In[ ]:
@@ -85,6 +85,16 @@ x_range_slider = pn.widgets.RangeSlider(name='𝑥 axis range',
                                         step=1,
                                         value=(-10,10),
                                         width=240)
+
+
+# In[ ]:
+
+
+a_slider = pn.widgets.FloatSlider(name='𝑎', 
+                                  start=-100, 
+                                  end=100, 
+                                  step=1,
+                                  value=0)
 
 
 # In[ ]:
@@ -120,25 +130,15 @@ d_slider = pn.widgets.FloatSlider(name='𝑑',
 # In[ ]:
 
 
-e_slider = pn.widgets.FloatSlider(name='𝑒', 
-                                  start=-100, 
-                                  end=100, 
-                                  step=1,
-                                  value=0)
-
-
-# In[ ]:
-
-
 @pn.depends(x_range_slider.param.value,
+            a_slider.param.value,
             b_slider.param.value,
             c_slider.param.value,
-            d_slider.param.value,
-            e_slider.param.value)
-def plot_logistic(x_range, b, c, d, e):
+            d_slider.param.value)
+def plot_logistic(x_range, a, b, c, d):
     X = np.linspace(x_range[0], x_range[1], 500)
     df = pd.DataFrame({"x": X})
-    df["f(x)"] = four_param_logistic(X, b, c, d, e)
+    df["f(x)"] = four_param_logistic(X, a, b, c, d)
     plot = df.hvplot(kind="line",
                      x="x",
                      y="f(x)",
@@ -151,7 +151,7 @@ def plot_logistic(x_range, b, c, d, e):
 # In[ ]:
 
 
-widgets = pn.WidgetBox('# Parameters', c_slider, d_slider, e_slider, b_slider,
+widgets = pn.WidgetBox('# Parameters', c_slider, d_slider, a_slider, b_slider, 
                        width=250)
 
 
@@ -159,13 +159,13 @@ widgets = pn.WidgetBox('# Parameters', c_slider, d_slider, e_slider, b_slider,
 
 
 md1 = pn.pane.Markdown("The Four-Parameter Logistic (4PL) curve is defined as follows:")
-description = r"""$$f(x) = c + \\frac{d - c}{1 + e^{b(x - e)}}$$"""
+description = r"""$$f(x) = c + \\frac{d - c}{1 + e^{b(x - a)}}$$"""
 md2 = pn.pane.Markdown("""
 Where:
 
 - $$c$$ is the lower asymptote
 - $$d$$ is the upper asymptote
-- $$e$$ is usually known as the <em>mid-point</em>: the $$x$$ value producing a response half-way between $$c$$ and $$d$$
+- $$a$$ is usually known as the <em>mid-point</em>: the $$x$$ value producing a response half-way between $$c$$ and $$d$$
 - $$b$$ is the slope around the mid-point. It can be positive or negative and, consequently, $$f(x)$$ may increase or decrease as $$x$$ increases
 """)
 
@@ -179,8 +179,9 @@ dash = pn.Row(pn.Spacer(height=10, sizing_mode="stretch_width"),
                                          style={"text-align": "center"}),
                         md1,
                         pn.pane.Markdown(description, 
-                                      sizing_mode="stretch_width",
-                                      style={"text-align":"center"}),
+                                         sizing_mode="stretch_width",
+                                         renderer='mathjax', 
+                                         style={"text-align":"center"}),
                         md2,
                         pn.Row(pn.Column(x_range_slider, widgets, 
                                          sizing_mode="stretch_width"), 
@@ -188,9 +189,13 @@ dash = pn.Row(pn.Spacer(height=10, sizing_mode="stretch_width"),
               pn.Spacer(height=10, sizing_mode="stretch_width"),
               sizing_mode="stretch_width")
 
+dash.servable()
 
 # In[ ]:
-dash.servable()
+
+
+
+
 
 
 await write_doc()
