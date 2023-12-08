@@ -178,7 +178,7 @@ widgets = pn.WidgetBox('# Parameters', c_slider, d_slider, a_slider, b_slider,
 
 
 md1 = pn.pane.Markdown("The Five-Parameter Logistic (5PL) curve is defined as follows:")
-description = r"""$$f(x) = c + \\frac{d - c}{\left(1 + e^{b(x - a)}\right)^s}$$"""
+description = r"""$$f(x) = c + \\frac{d - c}{\\left(1 + e^{b(x - a)}\\right)^s}$$"""
 md2 = pn.pane.Markdown("""
 Where:
 
